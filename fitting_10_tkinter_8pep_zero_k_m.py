@@ -15,9 +15,6 @@ from scipy.integrate import odeint, solve_ivp
 from scipy.interpolate import CubicSpline
 import threading
 from numdifftools import Hessian, Jacobian
-import nlopt
-from skopt import gp_minimize
-
 
 # Constants
 DEFAULT_FILE = '20220824_test17.csv'

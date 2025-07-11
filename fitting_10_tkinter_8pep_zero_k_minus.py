@@ -15,6 +15,8 @@ from scipy.integrate import odeint, solve_ivp
 from scipy.interpolate import CubicSpline
 import threading
 from numdifftools import Hessian, Jacobian
+import matplotlib
+matplotlib.use('Qt5Agg')
 
 # Constants
 DEFAULT_FILE = '20220824_test17.csv'
@@ -27,30 +29,35 @@ L1 = 10.0
 L2 = 5.0
 L3 = 2.0
 BOUNDS = [(2, 5), (log10(3), log10(300)),
-          (-5, 0), (-5, 0), (-5, 0),
-          (-5, 0), (-5, 0), (-5, 0),
-          (-5, 0), (-5, 0), (-5, 0),
-          (-5, 0), (-5, 0), (-5, 0),
-          (-5, 0), (-5, 0), (-5, 0),
-          (-5, 0), (-5, 0), (-5, 0),
-          (-5, 0), (-5, 0), (-5, 0),
-          (-5, 0), (-5, 0), (-5, 0)]
+          (-5, 1), (-5, 1), (-5, 1),
+          (-5, 1), (-5, 1), (-5, 1),
+          (-5, 1), (-5, 1), (-5, 1),
+          (-5, 1), (-5, 1), (-5, 1),
+          (-5, 1), (-5, 1), (-5, 1),
+          (-5, 1), (-5, 1), (-5, 1),
+          (-5, 1), (-5, 1), (-5, 1),
+          (-5, 1), (-5, 1), (-5, 1)]
 
 IS_ING = [False, True]
 LETTERS = ['A', 'B', 'C', 'D']
 PARAM_NAMES = ['A', 'B']
 for is_ing in IS_ING:
-    is_ing_str = 'ing' if is_ing else 'no_ing'
+    is_ing_str = '2' if is_ing else '1'
     for letter in LETTERS:
-        for pn in ['k_p_1', 'k_p_2', 'k_p_3']:
-            PARAM_NAMES.append(pn + '_' + letter + '_' + is_ing_str)
+        for pn in ['kon', 'koff', 'krel']:
+            PARAM_NAMES.append(pn + '_' + letter + is_ing_str)
 
 
 class KineticModelApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Kinetic Model Fitting Tool")
-        self.root.geometry("1800x1000")
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        print(screen_width, screen_height)
+        w = screen_width
+        h = screen_height - 120
+        self.root.geometry(f"{w}x{h}")
         
         # State variables
         self.is_calc_running = False
@@ -75,8 +82,10 @@ class KineticModelApp:
         self.yy_exp = None
         self.y_max = None
         self.y_min = None
+        self.BOUNDS = BOUNDS
         self.append_to_list = True
         self.filename = None
+        self.filepath = None
         self.status = 'Idle'
         
         # Create UI
@@ -103,7 +112,7 @@ class KineticModelApp:
         plot_frame_1 = ttk.LabelFrame(top_row, text="Model Fit")
         plot_frame_1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_1, self.plot_ax_1 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_1, self.plot_ax_1 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_1 = FigureCanvasTkAgg(self.plot_fig_1, master=plot_frame_1)
         self.plot_canvas_1.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -114,7 +123,7 @@ class KineticModelApp:
         plot_frame_2 = ttk.LabelFrame(top_row, text="Model Fit")
         plot_frame_2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_2, self.plot_ax_2 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_2, self.plot_ax_2 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_2 = FigureCanvasTkAgg(self.plot_fig_2, master=plot_frame_2)
         self.plot_canvas_2.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -125,7 +134,7 @@ class KineticModelApp:
         plot_frame_3 = ttk.LabelFrame(top_row, text="Model Fit")
         plot_frame_3.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_3, self.plot_ax_3 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_3, self.plot_ax_3 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_3 = FigureCanvasTkAgg(self.plot_fig_3, master=plot_frame_3)
         self.plot_canvas_3.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -136,7 +145,7 @@ class KineticModelApp:
         plot_frame_4 = ttk.LabelFrame(top_row, text="Model Fit")
         plot_frame_4.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_4, self.plot_ax_4 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_4, self.plot_ax_4 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_4 = FigureCanvasTkAgg(self.plot_fig_4, master=plot_frame_4)
         self.plot_canvas_4.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -147,16 +156,48 @@ class KineticModelApp:
         control_frame1 = ttk.LabelFrame(top_row, text="Controls1")
         control_frame1.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
         
+        ttk.Label(control_frame1, text="maxiter:").pack()
+        self.maxiter_entry = ttk.Entry(control_frame1)
+        self.maxiter_entry.insert(0, str(DIRECT_ITER))
+        self.maxiter_entry.pack(fill=tk.X)
+        
         # Buttons and controls
         self.gradient_button = ttk.Button(
             control_frame1, text="Run Gradient", command=self.run_gradient_threaded
         )
         self.gradient_button.pack(fill=tk.X, pady=2)
 
+        self.method_var = tk.StringVar()
+        self.method_var.set('Nelder-Mead')
+        options = ['Nelder-Mead', 'COBYLA']
+        tk.OptionMenu(control_frame1, self.method_var, *options).pack()
+
         self.skip_hessian_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(
             control_frame1, text="Skip hessian", variable=self.skip_hessian_var
         ).pack()
+
+        self.direct_button = ttk.Button(
+            control_frame1, text="Run DIRECT", command=self.run_direct_threaded
+        )
+        self.direct_button.pack(fill=tk.X, pady=2)
+        
+        # DIRECT options
+        ttk.Label(control_frame1, text="epsilon:").pack()
+        self.epsilon_entry = ttk.Entry(control_frame1)
+        self.epsilon_entry.insert(0, str(DIRECT_EPSILON))
+        self.epsilon_entry.pack(fill=tk.X)
+        
+        self.locally_biased_var = tk.BooleanVar(value=DIRECT_LOCALLY_BIASED)
+        ttk.Checkbutton(
+            control_frame1, text="Locally Biased", variable=self.locally_biased_var
+        ).pack()
+        
+        # File upload
+        self.upload_button = ttk.Button(
+            control_frame1, text="Load File", command=self.upload_file
+        )
+        self.upload_button.pack(fill=tk.X, pady=5)
 
         ttk.Label(control_frame1, text="L1:").pack()
         self.l1_entry = ttk.Entry(control_frame1)
@@ -173,32 +214,21 @@ class KineticModelApp:
         self.l3_entry.insert(0, str(L3))
         self.l3_entry.pack(fill=tk.X)
 
-        self.direct_button = ttk.Button(
-            control_frame1, text="Run DIRECT", command=self.run_direct_threaded
-        )
-        self.direct_button.pack(fill=tk.X, pady=2)
-        
-        # DIRECT options
-        ttk.Label(control_frame1, text="maxiter:").pack()
-        self.maxiter_entry = ttk.Entry(control_frame1)
-        self.maxiter_entry.insert(0, str(DIRECT_ITER))
-        self.maxiter_entry.pack(fill=tk.X)
-        
-        ttk.Label(control_frame1, text="epsilon:").pack()
-        self.epsilon_entry = ttk.Entry(control_frame1)
-        self.epsilon_entry.insert(0, str(DIRECT_EPSILON))
-        self.epsilon_entry.pack(fill=tk.X)
-        
-        self.locally_biased_var = tk.BooleanVar(value=DIRECT_LOCALLY_BIASED)
-        ttk.Checkbutton(
-            control_frame1, text="Locally Biased", variable=self.locally_biased_var
-        ).pack()
-        
+        ttk.Label(control_frame1, text="min log bound:").pack()
+        self.min_log_bound_entry = ttk.Entry(control_frame1)
+        self.min_log_bound_entry.insert(0, str(-5.0))
+        self.min_log_bound_entry.pack(fill=tk.X)
+
+        ttk.Label(control_frame1, text="max log bound:").pack()
+        self.max_log_bound_entry = ttk.Entry(control_frame1)
+        self.max_log_bound_entry.insert(0, str(1.0))
+        self.max_log_bound_entry.pack(fill=tk.X)
+
         # File upload
-        self.upload_button = ttk.Button(
-            control_frame1, text="Upload File", command=self.upload_file
+        self.apply_L_and_W_button = ttk.Button(
+            control_frame1, text="Apply L and W and bounds", command=self.apply_L_and_W
         )
-        self.upload_button.pack(fill=tk.X, pady=5)
+        self.apply_L_and_W_button.pack(fill=tk.X, pady=5)
 
         # Control panel
         control_frame2 = ttk.LabelFrame(top_row, text="Controls1")
@@ -252,7 +282,7 @@ class KineticModelApp:
         plot_frame_5 = ttk.LabelFrame(bottom_row, text="Model Fit")
         plot_frame_5.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_5, self.plot_ax_5 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_5, self.plot_ax_5 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_5 = FigureCanvasTkAgg(self.plot_fig_5, master=plot_frame_5)
         self.plot_canvas_5.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -263,7 +293,7 @@ class KineticModelApp:
         plot_frame_6 = ttk.LabelFrame(bottom_row, text="Model Fit")
         plot_frame_6.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_6, self.plot_ax_6 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_6, self.plot_ax_6 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_6 = FigureCanvasTkAgg(self.plot_fig_6, master=plot_frame_6)
         self.plot_canvas_6.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -274,7 +304,7 @@ class KineticModelApp:
         plot_frame_7 = ttk.LabelFrame(bottom_row, text="Model Fit")
         plot_frame_7.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_7, self.plot_ax_7 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_7, self.plot_ax_7 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_7 = FigureCanvasTkAgg(self.plot_fig_7, master=plot_frame_7)
         self.plot_canvas_7.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -285,7 +315,7 @@ class KineticModelApp:
         plot_frame_8 = ttk.LabelFrame(bottom_row, text="Model Fit")
         plot_frame_8.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        self.plot_fig_8, self.plot_ax_8 = plt.subplots(figsize=(3, 3))
+        self.plot_fig_8, self.plot_ax_8 = plt.subplots(figsize=(1.2, 1.2))
         self.plot_canvas_8 = FigureCanvasTkAgg(self.plot_fig_8, master=plot_frame_8)
         self.plot_canvas_8.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -332,22 +362,22 @@ class KineticModelApp:
                 else:
                     shift = 9 + shift0
 
-                k_p_1 = 10.0 **param[0 + shift]
-                k_p_2 = 10.0 **param[1 + shift]
-                k_p_3 = 10.0 **param[2 + shift]
+                kon = 10.0 **param[0 + shift]
+                koff = 10.0 **param[1 + shift]
+                krel = 10.0 **param[2 + shift]
 
-                k_m_1 = 0
-                k_m_2 = 0
-                k_m_3 = 0
+                kon_minus = 0
+                koff_minus = 0
+                krel_minus = 0
 
                 for L in LL:
-                    a11 = -(k_m_1 + k_p_2 + k_m_2 * L)
-                    a12 = k_p_1 * L - k_m_2 * L
-                    a21 = k_m_1 - k_p_3
-                    a22 = -(k_p_3 + k_m_3 + k_p_1 * L)
+                    a11 = -(kon_minus + koff + koff_minus * L)
+                    a12 = kon * L - koff_minus * L
+                    a21 = kon_minus - krel
+                    a22 = -(krel + krel_minus + kon * L)
 
-                    b1 = k_m_2 * L
-                    b2 = k_p_3
+                    b1 = koff_minus * L
+                    b2 = krel
 
                     def g(y, t):
                         y1 = y[0]
@@ -356,7 +386,7 @@ class KineticModelApp:
                         dy2 = a21 * y1 + a22 * y2 + b2
                         return [dy1, dy2]
 
-                    g0 = [0, k_p_3 / (k_p_3 + k_m_3)]
+                    g0 = [0, krel / (krel + krel_minus)]
 
                     sol = odeint(g, g0, [0] + tt.tolist())
                     sol = sol.tolist()
@@ -398,6 +428,7 @@ class KineticModelApp:
         return sq
 
     def load_file(self, filepath):
+        self.filepath = filepath
         self.filename = os.path.basename(filepath)
 
         try:
@@ -418,6 +449,12 @@ class KineticModelApp:
             self.LL = np.array([_L1, _L2, _L3])
             print(self.LL)
             self.xx = np.array(self.xx0)
+
+            min_bound = float(self.min_log_bound_entry.get())
+            max_bound = float(self.max_log_bound_entry.get())
+            for i in np.arange(2, 26):
+                self.BOUNDS[i] = (min_bound, max_bound)
+            print(self.BOUNDS)
 
             self.WA1 = float(self.wa1_entry.get())
             self.WB1 = float(self.wb1_entry.get())
@@ -476,6 +513,9 @@ class KineticModelApp:
             if self.load_file(filepath):
                 messagebox.showinfo("Success", f"File {os.path.basename(filepath)} loaded successfully")
 
+    def apply_L_and_W(self):
+        self.load_file(self.filepath)
+
     def run_direct_threaded(self):
         if self.is_calc_running:
             return
@@ -518,38 +558,9 @@ class KineticModelApp:
             maxiter=maxiter,
             eps=epsilon,
             locally_biased=locally_biased,
-            bounds=BOUNDS
+            bounds=self.BOUNDS
         )
 
-        # result = shgo(self.ff,
-        #               bounds=BOUNDS,
-        #               sampling_method='sobol',
-        #               minimizer_kwargs={'method': 'SLSQP'},
-        #               options={'maxfev': maxiter})
-
-        # opt = nlopt.opt(nlopt.GN_DIRECT, 20)
-        # # opt.set_min_objective(lambda param, _: self.ff(param))
-        # lower_bounds = []
-        # upped_bounds = []
-        # # start = []
-        # for bound in BOUNDS:
-        #     (lo, up) = bound
-        #     lower_bounds.append(lo)
-        #     upped_bounds.append(up)
-        #     # start.append(0)
-
-        # res = gp_minimize(
-        #     self.ff,
-        #     dimensions=BOUNDS,
-        #     acq_func="EI",
-        #     acq_optimizer="sampling",
-        #     n_calls=maxiter,
-        #     n_initial_points=10,
-        #     x0=self.selected_param,
-        #     random_state=42,
-        # )
-
-        # self.selected_index = len(self.all_points) - 1
         self.selected_index = np.argmin(self.all_values)
         self.selected_param = self.all_points[self.selected_index]
         self.is_calc_running = False
@@ -561,8 +572,12 @@ class KineticModelApp:
         if self.is_calc_running:
             return
 
+        maxiter = int(self.maxiter_entry.get())
+        method = self.method_var.get()
+
         thread = threading.Thread(
             target=self.run_gradient,
+            args=(maxiter, method),
             daemon=True
         )
         thread.start()
@@ -584,9 +599,9 @@ class KineticModelApp:
                              self.format_float((erf(p - dp) + 1) / 2),
                              self.format_float((erf(p + dp) + 1) / 2)))
                 else:
-                    is_zero = param_name.startswith('k_m_1') and self.zero_k_m_1 or \
-                                param_name.startswith('k_m_2') and self.zero_k_m_2 or \
-                                param_name.startswith('k_m_3') and self.zero_k_m_3
+                    is_zero = param_name.startswith('kon_minus') and self.zero_kon_minus or \
+                                param_name.startswith('koff_minus') and self.zero_koff_minus or \
+                                param_name.startswith('krel_minus') and self.zero_krel_minus
                     print(param_name,
                           self.format_float(10.0 ** p if not is_zero else 0),
                           self.format_float(10.0 ** (p - dp) if not is_zero else 0),
@@ -656,7 +671,7 @@ class KineticModelApp:
         axs[1, 3].plot(self.xx0, self.yy_exp[self.N_times * 23:self.N_times * 24], '--', c='green')
         plt.savefig(self.filename + '_fit10.png')
 
-    def save_derived_plot_to_png(self, param, k_m_1_coeff, k_p_3_coeff, L_coeff, fn):
+    def save_derived_plot_to_png(self, param, kon_minus_coeff, krel_coeff, L_coeff, fn):
         yy0 = np.array(
             self.f(self.xx1, self.LL * L_coeff, param))
 
@@ -665,24 +680,26 @@ class KineticModelApp:
         max1 = yy0[N_times_0 * 0:N_times_0 * 1][argrelextrema(yy0[N_times_0 * 0:N_times_0 * 1], np.greater)]
         max2 = yy0[N_times_0 * 1:N_times_0 * 2][argrelextrema(yy0[N_times_0 * 1:N_times_0 * 2], np.greater)]
         max3 = yy0[N_times_0 * 2:N_times_0 * 3][argrelextrema(yy0[N_times_0 * 2:N_times_0 * 3], np.greater)]
-        print('k_m_1: {0} k_p_3: {1} L:{2} max1: {3} max2: {4} max3: {5}'.format(k_m_1_coeff, k_p_3_coeff, L_coeff, max1, max2, max3))
+        print('kon_minus: {0} krel: {1} L:{2} max1: {3} max2: {4} max3: {5}'.format(kon_minus_coeff, krel_coeff, L_coeff, max1, max2, max3))
         fn.write(
-            'k_m_1: {0} k_p_3: {1} L:{2} max1: {3} max2: {4} max3: {5}\n'.format(k_m_1_coeff, k_p_3_coeff, L_coeff, max1,
+            'kon_minus: {0} krel: {1} L:{2} max1: {3} max2: {4} max3: {5}\n'.format(kon_minus_coeff, krel_coeff, L_coeff, max1,
                                                                                max2, max3))
 
         plt.figure()
-        plt.title(self.filename + '\nk_m_1: {0} k_p_3: {1} L:{2}'.format(k_m_1_coeff, k_p_3_coeff, L_coeff))
+        plt.title(self.filename + '\nkon_minus: {0} krel: {1} L:{2}'.format(kon_minus_coeff, krel_coeff, L_coeff))
         plt.plot(self.xx1, yy0[N_times_0 * 0:N_times_0 * 1], c='blue')
         plt.plot(self.xx1, yy0[N_times_0 * 1:N_times_0 * 2], c='red')
         plt.plot(self.xx1, yy0[N_times_0 * 2:N_times_0 * 3], c='green')
-        plt.savefig('derived/' + self.filename + '_k_m_1_{0}_k_p_3_{1}_L_{2}.png'.format(k_m_1_coeff, k_p_3_coeff, L_coeff))
+        plt.savefig('derived/' + self.filename + '_kon_minus_{0}_krel_{1}_L_{2}.png'.format(kon_minus_coeff, krel_coeff, L_coeff))
 
         if len(max1) > 0:
             return max1[0]
         else:
             return np.nan
 
-    def run_gradient(self):
+    def run_gradient(self, maxiter, method):
+        print(method, maxiter)
+
         self.status = 'Running gradient'
         self.is_calc_running = True
         self.update_plots()
@@ -692,10 +709,10 @@ class KineticModelApp:
 
         result = minimize(
             self.ff,
-            method='Nelder-Mead',
+            method=method,
             x0=self.selected_param,
-            bounds=BOUNDS,
-            options={'maxiter': 100000, 'fatol': (self.y_max * _W / 1000.0)}
+            bounds=self.BOUNDS,
+            options={'maxiter': maxiter, 'fatol': (self.y_max * _W / 1000.0), 'tol': 1e-4}
         )
         print(result)
         param = result.x
@@ -781,6 +798,7 @@ class KineticModelApp:
         self.gradient_button.config(state=state)
         self.direct_button.config(state=state)
         self.upload_button.config(state=state)
+        self.apply_L_and_W_button.config(state=state)
 
     def on_scatter_click(self, event, plot_idx):
         if not event.inaxes:
@@ -826,37 +844,37 @@ class KineticModelApp:
         A = 10.0 **param[0]
         B = 10.0 **param[1]
         shift = 2
-        k_p_1_A_no_ing = 10.0 **param[0 + shift]
-        k_p_2_A_no_ing = 10.0 **param[1 + shift]
-        k_p_3_A_no_ing = 10.0 ** param[2 + shift]
+        kon_A1 = 10.0 **param[0 + shift]
+        koff_A1 = 10.0 **param[1 + shift]
+        krel_A1 = 10.0 ** param[2 + shift]
         shift = 5
-        k_p_1_B_no_ing = 10.0 **param[0 + shift]
-        k_p_2_B_no_ing = 10.0 **param[1 + shift]
-        k_p_3_B_no_ing = 10.0 ** param[2 + shift]
+        kon_B1 = 10.0 **param[0 + shift]
+        koff_B1 = 10.0 **param[1 + shift]
+        krel_B1 = 10.0 ** param[2 + shift]
         shift = 8
-        k_p_1_C_no_ing = 10.0 **param[0 + shift]
-        k_p_2_C_no_ing = 10.0 **param[1 + shift]
-        k_p_3_C_no_ing = 10.0 ** param[2 + shift]
+        kon_C1 = 10.0 **param[0 + shift]
+        koff_C1 = 10.0 **param[1 + shift]
+        krel_C1 = 10.0 ** param[2 + shift]
         shift = 11
-        k_p_1_D_no_ing = 10.0 **param[0 + shift]
-        k_p_2_D_no_ing = 10.0 **param[1 + shift]
-        k_p_3_D_no_ing = 10.0 ** param[2 + shift]
+        kon_D1 = 10.0 **param[0 + shift]
+        koff_D1 = 10.0 **param[1 + shift]
+        krel_D1 = 10.0 ** param[2 + shift]
         shift = 14
-        k_p_1_A_ing = 10.0 ** param[0 + shift]
-        k_p_2_A_ing = 10.0 ** param[1 + shift]
-        k_p_3_A_ing = 10.0 ** param[2 + shift]
+        kon_A2 = 10.0 ** param[0 + shift]
+        koff_A2 = 10.0 ** param[1 + shift]
+        krel_A2 = 10.0 ** param[2 + shift]
         shift = 17
-        k_p_1_B_ing = 10.0 ** param[0 + shift]
-        k_p_2_B_ing = 10.0 ** param[1 + shift]
-        k_p_3_B_ing = 10.0 ** param[2 + shift]
+        kon_B2 = 10.0 ** param[0 + shift]
+        koff_B2 = 10.0 ** param[1 + shift]
+        krel_B2 = 10.0 ** param[2 + shift]
         shift = 20
-        k_p_1_C_ing = 10.0 ** param[0 + shift]
-        k_p_2_C_ing = 10.0 ** param[1 + shift]
-        k_p_3_C_ing = 10.0 ** param[2 + shift]
+        kon_C2 = 10.0 ** param[0 + shift]
+        koff_C2 = 10.0 ** param[1 + shift]
+        krel_C2 = 10.0 ** param[2 + shift]
         shift = 23
-        k_p_1_D_ing = 10.0 ** param[0 + shift]
-        k_p_2_D_ing = 10.0 ** param[1 + shift]
-        k_p_3_D_ing = 10.0 ** param[2 + shift]
+        kon_D2 = 10.0 ** param[0 + shift]
+        koff_D2 = 10.0 ** param[1 + shift]
+        krel_D2 = 10.0 ** param[2 + shift]
         value = self.ff(param)
         
         info_text = f"""
@@ -865,30 +883,30 @@ iter = {len(self.all_points)}
 value = {self.format_float(value)}
 A = {self.format_float(A)}
 B = {self.format_float(B)}
-k_p_1_A_no_ing = {self.format_float(k_p_1_A_no_ing)}
-k_p_2_A_no_ing = {self.format_float(k_p_2_A_no_ing)}
-k_p_3_A_no_ing = {self.format_float(k_p_3_A_no_ing)}
-k_p_1_B_no_ing = {self.format_float(k_p_1_B_no_ing)}
-k_p_2_B_no_ing = {self.format_float(k_p_2_B_no_ing)}
-k_p_3_B_no_ing = {self.format_float(k_p_3_B_no_ing)}
-k_p_1_C_no_ing = {self.format_float(k_p_1_C_no_ing)}
-k_p_2_C_no_ing = {self.format_float(k_p_2_C_no_ing)}
-k_p_3_C_no_ing = {self.format_float(k_p_3_C_no_ing)}
-k_p_1_D_no_ing = {self.format_float(k_p_1_D_no_ing)}
-k_p_2_D_no_ing = {self.format_float(k_p_2_D_no_ing)}
-k_p_3_D_no_ing = {self.format_float(k_p_3_D_no_ing)}
-k_p_1_A_ing = {self.format_float(k_p_1_A_ing)}
-k_p_2_A_ing = {self.format_float(k_p_2_A_ing)}
-k_p_3_A_ing = {self.format_float(k_p_3_A_ing)}
-k_p_1_B_ing = {self.format_float(k_p_1_B_ing)}
-k_p_2_B_ing = {self.format_float(k_p_2_B_ing)}
-k_p_3_B_ing = {self.format_float(k_p_3_B_ing)}
-k_p_1_C_ing = {self.format_float(k_p_1_C_ing)}
-k_p_2_C_ing = {self.format_float(k_p_2_C_ing)}
-k_p_3_C_ing = {self.format_float(k_p_3_C_ing)}
-k_p_1_D_ing = {self.format_float(k_p_1_D_ing)}
-k_p_2_D_ing = {self.format_float(k_p_2_D_ing)}
-k_p_3_D_ing = {self.format_float(k_p_3_D_ing)}
+kon_A1 = {self.format_float(kon_A1)}
+koff_A1 = {self.format_float(koff_A1)}
+krel_A1 = {self.format_float(krel_A1)}
+kon_B1 = {self.format_float(kon_B1)}
+koff_B1 = {self.format_float(koff_B1)}
+krel_B1 = {self.format_float(krel_B1)}
+kon_C1 = {self.format_float(kon_C1)}
+koff_C1 = {self.format_float(koff_C1)}
+krel_C1 = {self.format_float(krel_C1)}
+kon_D1 = {self.format_float(kon_D1)}
+koff_D1 = {self.format_float(koff_D1)}
+krel_D1 = {self.format_float(krel_D1)}
+kon_A2 = {self.format_float(kon_A2)}
+koff_A2 = {self.format_float(koff_A2)}
+krel_A2 = {self.format_float(krel_A2)}
+kon_B2 = {self.format_float(kon_B2)}
+koff_B2 = {self.format_float(koff_B2)}
+krel_B2 = {self.format_float(krel_B2)}
+kon_C2 = {self.format_float(kon_C2)}
+koff_C2 = {self.format_float(koff_C2)}
+krel_C2 = {self.format_float(krel_C2)}
+kon_D2 = {self.format_float(kon_D2)}
+koff_D2 = {self.format_float(koff_D2)}
+krel_D2 = {self.format_float(krel_D2)}
 """
         self.info_text.delete(1.0, tk.END)
         self.info_text.insert(tk.END, info_text.strip())

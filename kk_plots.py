@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from numpy import log10
+import scipy.stats as stats
 
-fn_out = 'kk_plot.png'
+fn_out = 'kk_3dplot.png'
 
 kNames1 = ["k1", "k2", "k3"]
 kNames2 = ["kon", "koff", "krel"]
@@ -65,7 +66,6 @@ ax.set_ylabel(f'log10({kNames2[0]})')
 # cbar.set_ticks(np.arange(8))
 # cbar.set_ticklabels(ticklabels)
 
-
 ax = fig.add_subplot(4, 4, 13)
 ax.set_title(kNames2[1])
 sc = ax.scatter(values_0, values[1], c=range(8), cmap=custom_cmap, s=5, marker='.')
@@ -89,3 +89,24 @@ ax.set_ylabel(f'log10({kNames2[2]})')
 # cbar.set_ticklabels(ticklabels)
 
 plt.savefig(fn_out)
+
+rho, p_value = stats.spearmanr(values_0, values[0])
+print(f"kon Spearman’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+rho, p_value = stats.spearmanr(values_0, values[1])
+print(f"koff Spearman’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+rho, p_value = stats.spearmanr(values_0, values[2])
+print(f"krel Spearman’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+
+rho, p_value = stats.pearsonr(values_0, values[0])
+print(f"kon Pearson’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+rho, p_value = stats.pearsonr(values_0, values[1])
+print(f"koff Pearson’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+rho, p_value = stats.pearsonr(values_0, values[2])
+print(f"krel Pearson’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+
+rho, p_value = stats.kendalltau(values_0, values[0])
+print(f"kon kendall tau: {rho:.3f}, p-value: {p_value:.4f}")
+rho, p_value = stats.kendalltau(values_0, values[1])
+print(f"koff kendall tau: {rho:.3f}, p-value: {p_value:.4f}")
+rho, p_value = stats.kendalltau(values_0, values[2])
+print(f"krel kendall tau: {rho:.3f}, p-value: {p_value:.4f}")

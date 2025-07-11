@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
-fn_out = 'kk_plot_diff.png'
+fn_out = 'kk_3dplot_diff.png'
 
 kNames1 = ["k1", "k2", "k3"]
 kNames2 = ["kon", "koff", "krel"]

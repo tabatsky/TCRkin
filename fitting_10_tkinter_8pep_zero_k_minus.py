@@ -169,7 +169,7 @@ class KineticModelApp:
 
         self.method_var = tk.StringVar()
         self.method_var.set('Nelder-Mead')
-        options = ['Nelder-Mead', 'COBYLA']
+        options = ['Nelder-Mead', 'COBYLA', 'L-BFGS-B']
         tk.OptionMenu(control_frame1, self.method_var, *options).pack()
 
         self.skip_hessian_var = tk.BooleanVar(value=False)

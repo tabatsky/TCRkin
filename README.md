@@ -21,15 +21,15 @@
 
 The csv file separated by ";".
 
-Column A - time.
-Columns B-D - peptide A1.
-Columns E-G - peptide A2.
-Columns H-J - peptide B1.
-Columns K-M - peptide B2.
-Columns N-P - peptide C1.
-Columns Q-S - peptide C2.
-Columns T-V - peptide D1.
-Columns W-Y - peptide D2.
+1. Column A - time.
+2. Columns B-D - peptide A1.
+3. Columns E-G - peptide A2.
+4. Columns H-J - peptide B1.
+5. Columns K-M - peptide B2.
+6. Columns N-P - peptide C1.
+7. Columns Q-S - peptide C2.
+8. Columns T-V - peptide D1.
+9. Columns W-Y - peptide D2.
 
 Each 3 columns for peptide contains L1, L2, L3.
 

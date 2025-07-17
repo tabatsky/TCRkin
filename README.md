@@ -1,6 +1,6 @@
 # TCRkin
 
-## TCRkin is a Python-based tool for fitting kinetic models to experimental data related to TCR (T cell receptor) signaling. It enables parameter estimation using global optimization (DIRECT) followed by local refinement (Gradient Descent), designed to calibrate models against time-course measurements for multiple peptide ligands at varying concentrations.
+TCRkin is a Python-based tool for fitting kinetic models to experimental data related to TCR (T cell receptor) signaling. It enables parameter estimation using global optimization (DIRECT) followed by local refinement (Gradient Descent), designed to calibrate models against time-course measurements for multiple peptide ligands at varying concentrations.
 
 ## Requirements
 

@@ -35,7 +35,7 @@ The input should be a .csv file with values separated by semicolons (;).
 
 Column Description
 
-1. A Time points (in seconds)
+1. A Time points (in minutes)
 2. B–D Peptide A1 (w/o anti-CD8)
 3. E–G Peptide A2 (with anti-CD8)
 4. H–J Peptide B1 (w/o anti-CD8)

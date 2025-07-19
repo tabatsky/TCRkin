@@ -26,7 +26,7 @@ colors <- list("#ff0000", "#ffbbbb", "#ffff00", "#ffffcc", "#00ff00", "#bbffbb",
 
 box_plot <- ggplot(data_mod) +
   geom_boxplot(aes(x=variable, y=value), fill=colors) +
-  coord_cartesian(ylim = c(0, 10000)) +
+  coord_cartesian(ylim = c(0, 6000)) +
   labs(x = '', y = 'mean pTCR', color='') +
   theme_bw() +
   theme(plot.title = element_text(size = 18), 

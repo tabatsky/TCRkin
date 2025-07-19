@@ -5,7 +5,7 @@ from matplotlib.colors import ListedColormap
 from numpy import log10
 import scipy.stats as stats
 
-fn_out = 'kk_3dplot.png'
+fn_out = 'kk_plot.png'
 
 kNames1 = ["k1", "k2", "k3"]
 kNames2 = ["kon", "koff", "krel"]
@@ -57,9 +57,9 @@ ax.set_title(kNames2[0])
 sc = ax.scatter(values_0, values[0], c=range(8), cmap=custom_cmap, s=5, marker='.')
 ax.scatter(values_0[[0, 2, 4, 6]], values[0][[0, 2, 4, 6]], c=[0, 2, 4, 6], cmap=custom_cmap, s=75, marker='o')
 ax.scatter(values_0[[1, 3, 5, 7]], values[0][[1, 3, 5, 7]], c=[1, 3, 5, 7], cmap=custom_cmap, s=75, marker='^')
-xx = [values_0[0], values_0[0], values_0[0]]
-yy = [values[0][0] + log10(0.5), values[0][0] + log10(0.2), values[0][0] + log10(0.1)]
-ax.scatter(xx, yy, facecolors='none', edgecolors="#ff0000", s=75, marker='o')
+# xx = [values_0[0], values_0[0], values_0[0]]
+# yy = [values[0][0] + log10(0.5), values[0][0] + log10(0.2), values[0][0] + log10(0.1)]
+# ax.scatter(xx, yy, facecolors='none', edgecolors="#ff0000", s=75, marker='o')
 ax.set_xlabel('pTCR, MFI (arb.units)')
 ax.set_ylabel(f'log10({kNames2[0]})')
 # cbar = fig.colorbar(sc, boundaries=np.arange(9) - 0.5)

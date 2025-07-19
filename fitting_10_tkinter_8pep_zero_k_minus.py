@@ -19,7 +19,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 
 # Constants
-DEFAULT_FILE = '20220824_test17.csv'
+DEFAULT_FILE = 'experimental data examples/20220824_test17.csv'
 # DEFAULT_FILE = '20220609_N4.csv'
 DEBUG = False
 DIRECT_ITER = 100000

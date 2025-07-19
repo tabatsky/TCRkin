@@ -23,7 +23,7 @@ command line:
 ## Workflow Steps
 
 1. Load File – Load the .csv file containing your experimental data.
-2. Set Parameters – Configure initial values and bounds for model parameters.
+2. Set Parameters – Configure concentrations, bounds and peptide weights for model parameters.
 3. Run DIRECT – Perform global optimization with the DIRECT algorithm.
 4. Run Gradient – Refine the fit using local gradient-based optimization.
 
@@ -50,5 +50,7 @@ Each peptide condition is measured at three distinct concentrations, represented
 For example, columns B–D contain data for Peptide A at three concentrations in the absence of anti-CD8.
 
 Columns E–G contain the same concentrations for Peptide A in the presence of anti-CD8.
+
+If you have fewer than 8 peptide measurements, you can duplicate each peptide 2, 4, or 8 times to match the required input format.
 
 ### Feel free to open an issue if you encounter any problems or have suggestions!

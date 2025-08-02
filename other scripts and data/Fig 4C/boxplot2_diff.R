@@ -33,7 +33,7 @@ for (i in c(1, 2, 3)) {
   data_mod = data_mod1
   data_mod$value = data_mod1$value - data_mod2$value
   
-  colors <- list("#ff0000", "#ffff00", "#00ff00", "#0000ff")
+  colors <- list("#ff0000", "#ff00ff", "#00ff00", "#0000ff")
   
   box_plot <- ggplot(data_mod) +
     geom_boxplot(aes(x=variable, y=value), fill=colors) +
@@ -95,7 +95,7 @@ data_mod <- melt(data_frame, id.vars='fileName',
                  measure.vars=vars1)
 data_mod$value = data_mod1$value - data_mod2$value
 
-colors <- list("#ff0000", "#ffff00", "#00ff00", "#0000ff")
+colors <- list("#ff0000", "#ff00ff", "#00ff00", "#0000ff")
 
 box_plot <- ggplot(data_mod) +
   geom_boxplot(aes(x=variable, y=value), fill=colors) +

@@ -29,7 +29,7 @@ for (i in c(1, 2, 3)) {
                    measure.vars=vars)
   data_mod$value = sapply(data_mod$value, function(x) log10(as.numeric(x)))
   
-  colors <- list("#ff0000", "#ffbbbb", "#ffff00", "#ffffcc", "#00ff00", "#bbffbb", "#0000ff", "#bbbbff")
+  colors <- list("#ff0000", "#ffbbbb", "#ff00ff", "#ff77ff", "#00ff00", "#bbffbb", "#0000ff", "#bbbbff")
   
   box_plot <- ggplot(data_mod) +
     geom_boxplot(aes(x=variable, y=value), fill=colors) +
@@ -83,7 +83,7 @@ data_mod$value = data_mod_1$value - data_mod_2$value
 
 #data_mod$value = sapply(data_mod$value, function(x) 10**x)
 
-colors <- list("#ff0000", "#ffbbbb", "#ffff00", "#ffffcc", "#00ff00", "#bbffbb", "#0000ff", "#bbbbff")
+colors <- list("#ff0000", "#ffbbbb", "#ff00ff", "#ff77ff", "#00ff00", "#bbffbb", "#0000ff", "#bbbbff")
 
 box_plot <- ggplot(data_mod) +
   geom_boxplot(aes(x=variable, y=value), fill=colors) +

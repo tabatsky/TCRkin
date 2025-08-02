@@ -22,7 +22,7 @@ for (peptide in peptides) {
 data_mod <- melt(data_frame,  
                  measure.vars=vars)
 
-colors <- list("#ff0000", "#ffbbbb", "#ffff00", "#ffffcc", "#00ff00", "#bbffbb", "#0000ff", "#bbbbff")
+colors <- list("#ff0000", "#ffbbbb", "#ff00ff", "#ff77ff", "#00ff00", "#bbffbb", "#0000ff", "#bbbbff")
 
 box_plot <- ggplot(data_mod) +
   geom_boxplot(aes(x=variable, y=value), fill=colors) +

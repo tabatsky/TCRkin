@@ -36,7 +36,7 @@ for (i in c(1, 2, 3)) {
   colors <- list("#ff0000", "#ff00ff", "#00ff00", "#0000ff")
   
   box_plot <- ggplot(data_mod) +
-    geom_boxplot(aes(x=variable, y=value), fill=colors) +
+    geom_boxplot(aes(x=variable, y=value), fill=colors, width=0.5) +
     coord_cartesian(ylim = c(-1, 3)) +
     labs(x = '', y = paste('log10(', kName2, ')', sep=''), color='') +
     theme_bw() +
@@ -98,7 +98,7 @@ data_mod$value = data_mod1$value - data_mod2$value
 colors <- list("#ff0000", "#ff00ff", "#00ff00", "#0000ff")
 
 box_plot <- ggplot(data_mod) +
-  geom_boxplot(aes(x=variable, y=value), fill=colors) +
+  geom_boxplot(aes(x=variable, y=value), fill=colors, width=0.5) +
   coord_cartesian(ylim = c(-3, 3)) +
   labs(x = '', y = paste('log10(', 'kon/koff', ')', sep=''), color='') +
   theme_bw() +

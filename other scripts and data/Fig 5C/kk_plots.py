@@ -23,10 +23,15 @@ with open(fn_in_0, 'r') as file:
     headers = next(reader)
     data_0 = np.array(list(reader))
 
+data_0_merge = np.concatenate((data_0[0, :], data_0[1, :], data_0[2, :])).astype(float)
+print(data_0_merge.shape)
+
 ticklabels = headers
 
 data_for_calc_0 = data_0.astype(float)
 values_0 = np.mean(data_for_calc_0, 0)
+
+log_data_for_calc_merge = None
 
 for i in range(3):
     kName = kNames1[i]
@@ -43,12 +48,17 @@ for i in range(3):
     data_for_calc = data[:, 1:].astype(float)
     print(data_for_calc.shape)
     lod_data_for_calc = np.log10(data_for_calc)
+    if log_data_for_calc_merge is None:
+        log_data_for_calc_merge = lod_data_for_calc
+    else:
+        log_data_for_calc_merge = np.column_stack((log_data_for_calc_merge, lod_data_for_calc))
     #means = np.nanmean(data_for_calc, 0)
     #logmeans = np.log10(means)
     logmeans = np.nanmean(lod_data_for_calc, 0)
     values_mean.append(logmeans)
     logstd = np.nanstd(lod_data_for_calc, 0)
     values_std.append(logstd)
+print(log_data_for_calc_merge.shape)
 
 fig = plt.figure(figsize=(12, 12))
 
@@ -85,22 +95,61 @@ ax.set_ylabel(f'log10({kNames2[2]})')
 plt.savefig(fn_out)
 
 rho, p_value = stats.spearmanr(values_0, values_mean[0])
-print(f"kon Spearman’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"kon Spearman’s ρ 1: {rho:.3f}, p-value: {p_value:.4f}")
 rho, p_value = stats.spearmanr(values_0, values_mean[1])
-print(f"koff Spearman’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"koff Spearman’s ρ 1: {rho:.3f}, p-value: {p_value:.4f}")
 rho, p_value = stats.spearmanr(values_0, values_mean[2])
-print(f"krel Spearman’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"krel Spearman’s ρ 1: {rho:.3f}, p-value: {p_value:.4f}")
 
 rho, p_value = stats.pearsonr(values_0, values_mean[0])
-print(f"kon Pearson’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"kon Pearson’s ρ 1: {rho:.3f}, p-value: {p_value:.4f}")
 rho, p_value = stats.pearsonr(values_0, values_mean[1])
-print(f"koff Pearson’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"koff Pearson’s ρ 1: {rho:.3f}, p-value: {p_value:.4f}")
 rho, p_value = stats.pearsonr(values_0, values_mean[2])
-print(f"krel Pearson’s ρ: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"krel Pearson’s ρ 1: {rho:.3f}, p-value: {p_value:.4f}")
 
 rho, p_value = stats.kendalltau(values_0, values_mean[0])
-print(f"kon kendall tau: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"kon kendall tau 1: {rho:.3f}, p-value: {p_value:.4f}")
 rho, p_value = stats.kendalltau(values_0, values_mean[1])
-print(f"koff kendall tau: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"koff kendall tau 1: {rho:.3f}, p-value: {p_value:.4f}")
 rho, p_value = stats.kendalltau(values_0, values_mean[2])
-print(f"krel kendall tau: {rho:.3f}, p-value: {p_value:.4f}")
+print(f"krel kendall tau 1: {rho:.3f}, p-value: {p_value:.4f}")
+
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[0, :]))))
+#print(notnan)
+rho, p_value = stats.spearmanr(data_0_merge[notnan], log_data_for_calc_merge[0, :][notnan])
+print(f"kon Spearman’s ρ 2: {rho:.3f}, p-value: {p_value:.4f}")
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[1, :]))))
+#print(notnan)
+rho, p_value = stats.spearmanr(data_0_merge[notnan], log_data_for_calc_merge[1, :][notnan])
+print(f"koff Spearman’s ρ 2: {rho:.3f}, p-value: {p_value:.4f}")
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[2, :]))))
+#print(notnan)
+rho, p_value = stats.spearmanr(data_0_merge[notnan], log_data_for_calc_merge[2, :][notnan])
+print(f"krel Spearman’s ρ 2: {rho:.3f}, p-value: {p_value:.4f}")
+
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[0, :]))))
+#print(notnan)
+rho, p_value = stats.pearsonr(data_0_merge[notnan], log_data_for_calc_merge[0, :][notnan])
+print(f"kon Pearson’s ρ 2: {rho:.3f}, p-value: {p_value:.4f}")
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[1, :]))))
+#print(notnan)
+rho, p_value = stats.pearsonr(data_0_merge[notnan], log_data_for_calc_merge[1, :][notnan])
+print(f"koff Pearson’s ρ 2: {rho:.3f}, p-value: {p_value:.4f}")
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[2, :]))))
+#print(notnan)
+rho, p_value = stats.pearsonr(data_0_merge[notnan], log_data_for_calc_merge[2, :][notnan])
+print(f"krel Pearson’s ρ 2: {rho:.3f}, p-value: {p_value:.4f}")
+
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[0, :]))))
+#print(notnan)
+rho, p_value = stats.kendalltau(data_0_merge[notnan], log_data_for_calc_merge[0, :][notnan])
+print(f"kon kendall tau 2: {rho:.3f}, p-value: {p_value:.4f}")
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[1, :]))))
+#print(notnan)
+rho, p_value = stats.kendalltau(data_0_merge[notnan], log_data_for_calc_merge[1, :][notnan])
+print(f"koff kendall tau 2: {rho:.3f}, p-value: {p_value:.4f}")
+notnan = np.where(np.logical_not(np.logical_or(np.isnan(data_0_merge), np.isnan(log_data_for_calc_merge[2, :]))))
+#print(notnan)
+rho, p_value = stats.kendalltau(data_0_merge[notnan], log_data_for_calc_merge[2, :][notnan])
+print(f"krel kendall tau 2: {rho:.3f}, p-value: {p_value:.4f}")

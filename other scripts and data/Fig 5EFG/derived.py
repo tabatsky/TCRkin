@@ -10,10 +10,10 @@ from scipy.integrate import odeint
 fn_in = 'all_fitting_fit10.csv'
 
 LL0 = [1, 1.2, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 9]
-LL1 = LL0 * 9
+LL1 = LL0 * 10
 LL2 = []
-L2 = 0.001
-for i in range(9):
+L2 = 0.0001
+for i in range(10):
     for j in range(len(LL0)):
         LL2.append(L2)
     L2 *= 10
@@ -122,6 +122,39 @@ UVpep_k_p_1 = float(data[line_number, 6])
 UVpep_k_p_2 = float(data[line_number, 7])
 UVpep_k_p_3 = float(data[line_number, 8])
 
+line_number = 40
+
+N4_ing_A = float(data[line_number, 4])
+N4_ing_B = float(data[line_number, 5])
+N4_ing_k_p_1 = float(data[line_number, 6])
+N4_ing_k_p_2 = float(data[line_number, 7])
+N4_ing_k_p_3 = float(data[line_number, 8])
+
+line_number = 41
+
+T4_ing_A = float(data[line_number, 4])
+T4_ing_B = float(data[line_number, 5])
+T4_ing_k_p_1 = float(data[line_number, 6])
+T4_ing_k_p_2 = float(data[line_number, 7])
+T4_ing_k_p_3 = float(data[line_number, 8])
+
+line_number = 42
+
+V4_ing_A = float(data[line_number, 4])
+V4_ing_B = float(data[line_number, 5])
+V4_ing_k_p_1 = float(data[line_number, 6])
+V4_ing_k_p_2 = float(data[line_number, 7])
+V4_ing_k_p_3 = float(data[line_number, 8])
+
+line_number = 43
+
+UVpep_ing_A = float(data[line_number, 4])
+UVpep_ing_B = float(data[line_number, 5])
+UVpep_ing_k_p_1 = float(data[line_number, 6])
+UVpep_ing_k_p_2 = float(data[line_number, 7])
+UVpep_ing_k_p_3 = float(data[line_number, 8])
+
+
 kons = []
 koffs = []
 peaks = []
@@ -143,10 +176,14 @@ print(colors)
 cmap = ListedColormap([blue, red])
 plt.figure(figsize=(4.5, 4.5))
 plt.scatter(kons, koffs, c=colors, cmap=cmap, s=20)
-plt.scatter([0], [0], color='black', marker='*', s=400)
-plt.scatter([np.log10(T4_k_p_1 / k_p_1)], [np.log10(T4_k_p_2 / k_p_2)], color='green', marker='*', s=400)
-plt.scatter([np.log10(V4_k_p_1 / k_p_1)], [np.log10(V4_k_p_2 / k_p_2)], color='cyan', marker='*', s=400)
-plt.scatter([np.log10(UVpep_k_p_1 / k_p_1)], [np.log10(UVpep_k_p_2 / k_p_2)], color='yellow', marker='*', s=400)
+plt.scatter([0], [0], color='black', marker='*', s=200)
+plt.scatter([np.log10(T4_k_p_1 / k_p_1)], [np.log10(T4_k_p_2 / k_p_2)], color='green', marker='*', s=200)
+plt.scatter([np.log10(V4_k_p_1 / k_p_1)], [np.log10(V4_k_p_2 / k_p_2)], color='cyan', marker='*', s=200)
+plt.scatter([np.log10(UVpep_k_p_1 / k_p_1)], [np.log10(UVpep_k_p_2 / k_p_2)], color='yellow', marker='*', s=100)
+plt.scatter([np.log10(N4_ing_k_p_1 / k_p_1)], [np.log10(N4_ing_k_p_2 / k_p_2)], color='white', marker='*', s=200)
+plt.scatter([np.log10(T4_ing_k_p_1 / k_p_1)], [np.log10(T4_ing_k_p_2 / k_p_2)], color='magenta', marker='*', s=100)
+plt.scatter([np.log10(V4_ing_k_p_1 / k_p_1)], [np.log10(V4_ing_k_p_2 / k_p_2)], color='red', marker='*', s=200)
+plt.scatter([np.log10(UVpep_ing_k_p_1 / k_p_1)], [np.log10(UVpep_ing_k_p_2 / k_p_2)], color='blue', marker='*', s=100)
 plt.xlabel('log10 ( kon / kon_N4 )')
 plt.ylabel('log10 ( koff / koff_N4 )')
 out_file = f"{fileName}_{peptide}_{ing}_kon_koff.png"

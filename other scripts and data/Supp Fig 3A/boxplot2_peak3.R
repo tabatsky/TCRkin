@@ -37,7 +37,7 @@ data_mod <- melt(data_frame, id.vars='fileName',
                  measure.vars=vars)
 data_mod$value = sapply(data_mod$value, function(x) log10(as.numeric(x)))
 
-colors <- list("#ff0000", "#ff0000", "#ff0000", "#ffff00", "#ffff00", "#ffff00", "#00ff00", "#00ff00", "#00ff00", "#0000ff", "#0000ff", "#0000ff")
+colors <- list("#ff0000", "#ff0000", "#ff0000", "#ff00ff", "#ff00ff", "#ff00ff", "#00ff00", "#00ff00", "#00ff00", "#0000ff", "#0000ff", "#0000ff")
 
 box_plot <- ggplot(data_mod) +
   geom_boxplot(aes(x=variable, y=value), fill=colors) +

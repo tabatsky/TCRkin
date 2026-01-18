@@ -47,6 +47,7 @@ for i in range(3):
     data[np.where(data == '')] = 'nan'
     data_for_calc = data[:, 1:].astype(float)
     print(data_for_calc.shape)
+    data_for_calc = data_for_calc / 60.0
     lod_data_for_calc = np.log10(data_for_calc)
     if log_data_for_calc_merge is None:
         log_data_for_calc_merge = lod_data_for_calc
